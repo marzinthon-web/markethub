@@ -1,4 +1,4 @@
-(async function () {
+(function () {
   const status = document.getElementById('status');
   const buttons = [
     document.getElementById('loginBtn'),
@@ -18,8 +18,8 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ accessToken })
     });
-
     const data = await response.json().catch(() => ({}));
+
     if (!response.ok || !data.verified) {
       throw new Error(data.error || 'Pi sign-in could not be verified.');
     }
@@ -27,66 +27,67 @@
     show('Signed in as @' + (data.user && data.user.username ? data.user.username : 'Pioneer') + '.');
   }
 
-  // OAuth returns its result in the URL fragment, which is only readable in the browser.
-  const fragment = new URLSearchParams(window.location.hash.slice(1));
-  const returnedToken = fragment.get('access_token');
-  const returnedState = fragment.get('state');
-  const returnedError = fragment.get('error');
+  async function handleOAuthReturn() {
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    const token = params.get('access_token');
+    const returnedState = params.get('state');
+    const error = params.get('error');
 
-  if (returnedToken || returnedError) {
+    if (!token && !error) return false;
+
     const expectedState = sessionStorage.getItem('pi_oauth_state');
     sessionStorage.removeItem('pi_oauth_state');
     history.replaceState(null, '', window.location.pathname + window.location.search);
 
     if (!expectedState || returnedState !== expectedState) {
       show('Sign-in could not be verified (state mismatch). Please try again.');
-      return;
+      return true;
     }
-
-    if (returnedError) {
-      show('Pi sign-in was not completed: ' + returnedError + '. Please try again.');
-      return;
+    if (error) {
+      show('Pi sign-in was not completed: ' + error + '. Please try again.');
+      return true;
     }
 
     try {
       show('Verifying your Pi account…');
-      await verifyAccessToken(returnedToken);
-    } catch (error) {
-      show(error.message || 'Pi sign-in verification failed.');
-      console.error(error);
+      await verifyAccessToken(token);
+    } catch (err) {
+      show(err.message || 'Pi sign-in verification failed.');
+      console.error(err);
     }
-    return;
+    return true;
   }
 
-  try {
-    if (!window.Pi) {
-      throw new Error('Pi SDK did not load. Please open MarketHub in Pi Browser.');
-    }
-
-    await window.Pi.init({ version: '2.0', sandbox: false });
+  async function start() {
+    if (await handleOAuthReturn()) return;
 
     function login() {
       try {
-        const state = window.crypto.randomUUID();
+        const state = Array.from(window.crypto.getRandomValues(new Uint8Array(24)))
+          .map(value => value.toString(16).padStart(2, '0')).join('');
         sessionStorage.setItem('pi_oauth_state', state);
-        show('Opening Pi sign-in…');
 
-        window.Pi.signIn({
-          clientId: CLIENT_ID,
-          redirectUri: REDIRECT_URI,
-          scopes: ['username'],
-          state
-        });
-      } catch (error) {
-        show(error.message || 'Could not start Pi sign-in.');
-        console.error(error);
+        const authorizeUrl = new URL('https://accounts.pinet.com/oauth/authorize');
+        authorizeUrl.searchParams.set('response_type', 'token');
+        authorizeUrl.searchParams.set('client_id', CLIENT_ID);
+        authorizeUrl.searchParams.set('redirect_uri', REDIRECT_URI);
+        authorizeUrl.searchParams.set('scope', 'username');
+        authorizeUrl.searchParams.set('state', state);
+
+        show('Redirecting to Pi sign-in…');
+        window.location.assign(authorizeUrl.toString());
+      } catch (err) {
+        show(err.message || 'Could not start Pi sign-in.');
+        console.error(err);
       }
     }
 
     buttons.forEach(button => button.addEventListener('click', login));
-    show('Pi is ready. Tap Sign in with Pi.');
-  } catch (error) {
-    show(error.message || 'Could not connect to Pi.');
-    console.error(error);
+    show('Pi sign-in is ready. Tap Sign in with Pi.');
   }
+
+  start().catch(error => {
+    show(error.message || 'Could not connect to Pi sign-in.');
+    console.error(error);
+  });
 })();
