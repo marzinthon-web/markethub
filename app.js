@@ -67,7 +67,10 @@
     {name:'Sharp Sand',category:'Sand & Granite',price:'Request quote',unit:'per tipper load',seller:'Sample seller · Rivers',kind:'sand',tag:''},
     {name:'Stone-coated Roofing Sheets',category:'Roofing',price:'Request quote',unit:'per bundle / project',seller:'Sample seller · Anambra',kind:'roof',tag:''},
     {name:'PVC Plumbing Pipes',category:'Plumbing',price:'Request quote',unit:'sizes vary',seller:'Sample seller · Enugu',kind:'pipes',tag:''},
-    {name:'Interior Emulsion Paint',category:'Paint & Finishing',price:'Request quote',unit:'per bucket',seller:'Sample seller · Kaduna',kind:'paint',tag:''}
+    {name:'Interior Emulsion Paint',category:'Paint & Finishing',price:'Request quote',unit:'per bucket',seller:'Sample seller · Kaduna',kind:'paint',tag:''},
+    {name:'Residential Plot of Land',category:'Land',price:'Request quote',unit:'price per plot · verify documents',seller:'Sample listing · Lagos',kind:'land',tag:'Property'},
+    {name:'2-Bedroom Apartment',category:'Apartment',price:'Request quote',unit:'for sale or rent/lease · details to confirm',seller:'Sample listing · Abuja',kind:'property',tag:'Property'},
+    {name:'Shop / Commercial Space',category:'Shop / Commercial Space',price:'Request quote',unit:'for sale or rent/lease · details to confirm',seller:'Sample listing · Oyo',kind:'property',tag:'Commercial'}
   ];
   const grid = document.getElementById('productGrid');
   const search = document.getElementById('searchInput');
@@ -82,7 +85,9 @@
       sand:'<div class="art-sand"><i></i><i></i><i></i></div>',
       roof:'<div class="art-roof"><i></i><i></i><i></i><i></i></div>',
       pipes:'<div class="art-pipes"><i></i><i></i><i></i></div>',
-      paint:'<div class="art-paint"><i></i><i></i><b>PAINT</b></div>'
+      paint:'<div class="art-paint"><i></i><i></i><b>PAINT</b></div>',
+      land:'<div class="art-property"><b>LAND</b><span>FOR SALE</span></div>',
+      property:'<div class="art-property"><b>PROPERTY</b><span>SALE · RENT · LEASE</span></div>'
     };
     return art[kind] || '';
   }
