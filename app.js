@@ -15,7 +15,7 @@
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.verified) throw new Error(data.error || 'Pi sign-in could not be verified.');
-    sessionStorage.setItem('pi_access_token', accessToken);
+    localStorage.setItem('pi_access_token', accessToken);
     show('Signed in as @' + (data.user && data.user.username ? data.user.username : 'Pioneer') + '.');
   }
 
@@ -25,8 +25,8 @@
     const returnedState = params.get('state');
     const error = params.get('error');
     if (!token && !error) return false;
-    const expectedState = sessionStorage.getItem('pi_oauth_state');
-    sessionStorage.removeItem('pi_oauth_state');
+    const expectedState = localStorage.getItem('pi_oauth_state');
+    localStorage.removeItem('pi_oauth_state');
     history.replaceState(null, '', window.location.pathname + window.location.search);
     if (!expectedState || returnedState !== expectedState) {
       show('Sign-in could not be verified (state mismatch). Please try again.');
@@ -44,7 +44,7 @@
       try {
         const state = Array.from(window.crypto.getRandomValues(new Uint8Array(24)))
           .map(value => value.toString(16).padStart(2, '0')).join('');
-        sessionStorage.setItem('pi_oauth_state', state);
+        localStorage.setItem('pi_oauth_state', state);
         const authorizeUrl = new URL('https://accounts.pinet.com/oauth/authorize');
         authorizeUrl.searchParams.set('response_type', 'token');
         authorizeUrl.searchParams.set('client_id', CLIENT_ID);
@@ -118,7 +118,7 @@
   if (sellerForm) sellerForm.addEventListener('submit', async event => {
     event.preventDefault();
     if (sellerMessage) sellerMessage.textContent = '';
-    const accessToken = sessionStorage.getItem('pi_access_token');
+    const accessToken = localStorage.getItem('pi_access_token');
     if (!accessToken) {
       if (sellerMessage) sellerMessage.textContent = 'Please sign in with Pi first, then submit your seller registration.';
       return;
