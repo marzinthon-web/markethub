@@ -15,7 +15,7 @@
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.verified) throw new Error(data.error || 'Pi sign-in could not be verified.');
-    show('Signed in as @' + (data.user && data.user.username ? data.user.username : 'Pioneer') + '.');
+    sessionStorage.setItem('pi_access_token', accessToken);\n    show('Signed in as @' + (data.user && data.user.username ? data.user.username : 'Pioneer') + '.');
   }
 
   async function handleOAuthReturn() {
@@ -114,8 +114,31 @@
 
   const sellerForm = document.getElementById('sellerForm');
   const sellerMessage = document.getElementById('sellerMessage');
-  if (sellerForm) sellerForm.addEventListener('submit', event => {
+  if (sellerForm) sellerForm.addEventListener('submit', async event => {
     event.preventDefault();
-    if (sellerMessage) sellerMessage.textContent = 'Thanks for your interest. This preview cannot submit registrations yet; a secure database and seller account system must be connected before real registration.';
+    if (sellerMessage) sellerMessage.textContent = '';
+    const accessToken = sessionStorage.getItem('pi_access_token');
+    if (!accessToken) {
+      if (sellerMessage) sellerMessage.textContent = 'Please sign in with Pi first, then submit your seller registration.';
+      return;
+    }
+    const seller = Object.fromEntries(new FormData(sellerForm).entries());
+    const submitButton = sellerForm.querySelector('button[type="submit"]');
+    if (submitButton) { submitButton.disabled = true; submitButton.textContent = 'Saving registration…'; }
+    try {
+      const response = await fetch('/api/seller', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken, seller })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.saved) throw new Error(data.error || 'Registration could not be saved.');
+      if (sellerMessage) sellerMessage.textContent = 'Registration saved successfully for Pi account @' + data.username + '.';
+      sellerForm.reset();
+    } catch (error) {
+      if (sellerMessage) sellerMessage.textContent = error.message || 'Could not save registration. Please try again.';
+    } finally {
+      if (submitButton) { submitButton.disabled = false; submitButton.textContent = 'Submit seller registration'; }
+    }
   });
 })();
