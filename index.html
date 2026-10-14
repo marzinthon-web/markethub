@@ -1,3 +1,56 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MarketHub</title><link rel="stylesheet" href="styles.css"><script src="https://sdk.minepi.com/pi-sdk.js"></script></head>
-<body><header><div class="brand">MarketHub</div><button id="loginBtn">Sign in with Pi</button></header><main><section class="hero"><h1>Shop and sell with Pi</h1><p>Browse products, discover sellers, and build your marketplace.</p><button id="loginBtn2">Sign in with Pi</button><p id="status"></p></section><section><h2>Marketplace</h2><div class="cards"><article><h3>Featured products</h3><p>Product listings will appear here.</p></article><article><h3>Sell an item</h3><p>Create your seller listing from your account.</p></article><article><h3>Secure Pi payments</h3><p>Pi payment functionality can be added after login and production approval.</p></article></div></section></main><footer><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms</a></footer><script src="app.js"></script></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#174c3c">
+  <title>MarketHub Nigeria | Building Materials</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#" aria-label="MarketHub home"><span class="brand-mark">M</span><span>MarketHub <small>NIGERIA</small></span></a>
+    <nav><a href="#marketplace">Shop materials</a><a href="#sell">Sell on MarketHub</a></nav>
+    <button id="loginBtn" class="login-btn">Sign in with Pi</button>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">BUILT FOR NIGERIAN BUILDERS</span>
+        <h1>Building materials.<br><em>Better connected.</em></h1>
+        <p>Find cement and trusted building supplies from sellers across Nigeria.</p>
+        <div class="hero-actions"><a class="primary-btn" href="#marketplace">Browse materials</a><a class="secondary-btn" href="#sell">Become a seller</a></div>
+        <p id="status" class="status" aria-live="polite">Pi sign-in is ready. Tap Sign in with Pi.</p>
+      </div>
+      <div class="hero-art" aria-label="Illustration of building materials">
+        <div class="sun"></div><div class="material-stack"><div class="cement-bag">CEMENT <b>50 kg</b></div><div class="block block-one"></div><div class="block block-two"></div><div class="rod rod-one"></div><div class="rod rod-two"></div><div class="rod rod-three"></div></div>
+        <div class="art-label">Materials for every build</div>
+      </div>
+    </section>
+    <section id="marketplace" class="section">
+      <div class="section-heading"><div><span class="eyebrow">THE MARKETPLACE</span><h2>Find what your site needs</h2><p>Browse sample listings while the live seller catalogue is being connected.</p></div></div>
+      <div class="search-row"><label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="Search cement, iron rods, tiles..." aria-label="Search products"></label><select id="categoryFilter" aria-label="Filter by category"><option value="all">All categories</option><option>Cement</option><option>Blocks & Bricks</option><option>Iron Rods</option><option>Sand & Granite</option><option>Roofing</option><option>Plumbing</option><option>Electrical</option><option>Paint & Finishing</option></select></div>
+      <div id="productGrid" class="product-grid" aria-live="polite"></div>
+      <p id="emptyState" class="empty-state" hidden>No matching products. Try another search or category.</p>
+      <p class="demo-note">Prices and seller names shown are examples for the preview, not verified live offers. Confirm brand, stock, delivery and price directly before paying.</p>
+    </section>
+    <section id="sell" class="seller-section">
+      <div class="seller-copy"><span class="eyebrow">FOR BUILDING-MATERIAL SELLERS</span><h2>Grow your shop with MarketHub</h2><p>Register your business interest and prepare to list products for customers across Nigeria.</p><ul><li>Show your products and prices</li><li>Reach builders, contractors and homeowners</li><li>Receive enquiries about stock and delivery</li></ul></div>
+      <form id="sellerForm" class="seller-form">
+        <h3>Seller interest form</h3>
+        <p class="form-note">This preview does not yet send or save registrations to a central server.</p>
+        <label>Business or shop name<input name="shop" required placeholder="e.g. Ade Building Supplies"></label>
+        <label>Your name<input name="sellerName" required placeholder="Full name"></label>
+        <label>Phone / WhatsApp<input name="phone" required type="tel" placeholder="+234..."></label>
+        <label>State in Nigeria<select name="state" required><option value="">Choose state</option><option>Abia</option><option>Abuja (FCT)</option><option>Adamawa</option><option>Akwa Ibom</option><option>Anambra</option><option>Bauchi</option><option>Bayelsa</option><option>Benue</option><option>Borno</option><option>Cross River</option><option>Delta</option><option>Ebonyi</option><option>Edo</option><option>Ekiti</option><option>Enugu</option><option>Gombe</option><option>Imo</option><option>Jigawa</option><option>Kaduna</option><option>Kano</option><option>Katsina</option><option>Kebbi</option><option>Kogi</option><option>Kwara</option><option>Lagos</option><option>Nasarawa</option><option>Niger</option><option>Ogun</option><option>Ondo</option><option>Osun</option><option>Oyo</option><option>Plateau</option><option>Rivers</option><option>Sokoto</option><option>Taraba</option><option>Yobe</option><option>Zamfara</option></select></label>
+        <label>Main products<select name="products" required><option value="">Choose category</option><option>Cement</option><option>Blocks & Bricks</option><option>Iron Rods</option><option>Sand & Granite</option><option>Roofing</option><option>Plumbing</option><option>Electrical</option><option>Paint & Finishing</option><option>Multiple categories</option></select></label>
+        <button type="submit" class="primary-btn form-submit">Prepare registration</button><p id="sellerMessage" class="form-message" aria-live="polite"></p>
+      </form>
+    </section>
+    <section class="trust-strip"><div><b>Made for Nigeria</b><span>Local states and delivery details</span></div><div><b>Seller-first marketplace</b><span>Built for multiple independent shops</span></div><div><b>Pi sign-in</b><span>Your existing sign-in button is preserved</span></div></section>
+  </main>
+  <footer><span>© MarketHub Nigeria</span><div><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms</a></div></footer>
+  <script src="app.js"></script>
+</body>
+</html>
