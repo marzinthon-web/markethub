@@ -15,7 +15,8 @@
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.verified) throw new Error(data.error || 'Pi sign-in could not be verified.');
-    sessionStorage.setItem('pi_access_token', accessToken);\n    show('Signed in as @' + (data.user && data.user.username ? data.user.username : 'Pioneer') + '.');
+    sessionStorage.setItem('pi_access_token', accessToken);
+    show('Signed in as @' + (data.user && data.user.username ? data.user.username : 'Pioneer') + '.');
   }
 
   async function handleOAuthReturn() {
