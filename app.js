@@ -90,6 +90,8 @@
     }
   }
 
+  // Make the login handler available to the button's direct-click fallback.
+  window.marketHubPiLogin = login;
   buttons.forEach(button => {
     button.type = 'button';
     button.addEventListener('click', login);
