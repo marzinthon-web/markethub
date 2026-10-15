@@ -6,21 +6,6 @@
   <meta name="theme-color" content="#174c3c">
   <title>MarketHub Nigeria | Building Materials</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-  <script>
-    window.marketHubPiSdkReady = false;
-    window.addEventListener('load', function () {
-      try {
-        if (window.Pi && typeof window.Pi.init === 'function') {
-          Promise.resolve(window.Pi.init({ version: '2.0' }))
-            .then(function () { window.marketHubPiSdkReady = true; })
-            .catch(function (error) { console.warn('Pi SDK init failed; OAuth fallback remains available.', error); });
-        }
-      } catch (error) {
-        console.warn('Pi SDK init failed; OAuth fallback remains available.', error);
-      }
-    });
-  </script>
 </head>
 <body>
   <header class="site-header">
@@ -78,9 +63,9 @@
         <button type="submit" class="primary-btn form-submit">Save listing</button><p id="listingMessage" class="form-message" aria-live="polite"></p>
       </form>
     </section>
-    <section class="trust-strip"><div><b>Made for Nigeria</b><span>Local states and delivery details</span></div><div><b>Seller-first marketplace</b><span>Built for multiple independent shops</span></div><div><b>Pi sign-in</b><span>Pi SDK enabled with OAuth fallback</span></div></section>
+    <section class="trust-strip"><div><b>Made for Nigeria</b><span>Local states and delivery details</span></div><div><b>Seller-first marketplace</b><span>Built for multiple independent shops</span></div><div><b>Pi sign-in</b><span>Pi sign-in</span></div></section>
   </main>
   <footer><span>© MarketHub Nigeria</span><div><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms</a></div></footer>
-  <script src="app.js?v=pi-sdk-enabled"></script>
+  <script src="app.js?v=oauth-restore"></script>
 </body>
 </html>
