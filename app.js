@@ -6,7 +6,6 @@
   ].filter(Boolean);
 
   const CLIENT_ID = 'qzQ2R9iI56R6R_dj_0C4urjdlqIX2E07_LKlQyIutbA';
-  // Must exactly match the URI registered in the Pi Developer Portal.
   const REDIRECT_URI = 'https://markethub-updated-1.vercel.app';
 
   function show(message) {
@@ -59,30 +58,41 @@
     return true;
   }
 
+  async function login() {
+    try {
+      const state = Array.from(window.crypto.getRandomValues(new Uint8Array(24)))
+        .map(value => value.toString(16).padStart(2, '0')).join('');
+      sessionStorage.setItem('pi_oauth_state', state);
+      show('Starting Pi sign-in…');
+
+      // Prefer Pi's official SDK helper. If it is unavailable, retain the
+      // existing OAuth redirect so sign-in can still work.
+      if (window.Pi && typeof window.Pi.signIn === 'function') {
+        await window.Pi.signIn({
+          clientId: CLIENT_ID,
+          redirectUri: REDIRECT_URI,
+          scopes: ['username'],
+          state: state
+        });
+        return;
+      }
+
+      const authorizeUrl = new URL('https://accounts.pinet.com/oauth/authorize');
+      authorizeUrl.searchParams.set('response_type', 'token');
+      authorizeUrl.searchParams.set('client_id', CLIENT_ID);
+      authorizeUrl.searchParams.set('redirect_uri', REDIRECT_URI);
+      authorizeUrl.searchParams.set('scope', 'username');
+      authorizeUrl.searchParams.set('state', state);
+      show('Pi SDK unavailable; using the existing sign-in method…');
+      window.location.assign(authorizeUrl.toString());
+    } catch (err) {
+      show(err.message || 'Could not start Pi sign-in. Please try again.');
+      console.error(err);
+    }
+  }
+
   async function start() {
     if (await handleOAuthReturn()) return;
-
-    function login() {
-      try {
-        const state = Array.from(window.crypto.getRandomValues(new Uint8Array(24)))
-          .map(value => value.toString(16).padStart(2, '0')).join('');
-        sessionStorage.setItem('pi_oauth_state', state);
-
-        const authorizeUrl = new URL('https://accounts.pinet.com/oauth/authorize');
-        authorizeUrl.searchParams.set('response_type', 'token');
-        authorizeUrl.searchParams.set('client_id', CLIENT_ID);
-        authorizeUrl.searchParams.set('redirect_uri', REDIRECT_URI);
-        authorizeUrl.searchParams.set('scope', 'username');
-        authorizeUrl.searchParams.set('state', state);
-
-        show('Redirecting to Pi sign-in…');
-        window.location.assign(authorizeUrl.toString());
-      } catch (err) {
-        show(err.message || 'Could not start Pi sign-in.');
-        console.error(err);
-      }
-    }
-
     buttons.forEach(button => button.addEventListener('click', login));
     show('Pi sign-in is ready. Tap Sign in with Pi.');
   }
