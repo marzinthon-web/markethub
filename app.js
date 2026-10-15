@@ -68,6 +68,20 @@
           .map(value => value.toString(16).padStart(2, '0')).join('');
         sessionStorage.setItem('pi_oauth_state', state);
 
+        // Use the official Pi Sign-in SDK helper when available.
+        // The callback parsing and backend token verification below remain unchanged.
+        if (window.Pi && typeof window.Pi.signIn === 'function') {
+          show('Starting Pi SDK sign-in…');
+          window.Pi.signIn({
+            clientId: CLIENT_ID,
+            redirectUri: REDIRECT_URI,
+            scopes: ['username'],
+            state: state
+          });
+          return;
+        }
+
+        // Keep the previously working OAuth redirect as a fallback.
         const authorizeUrl = new URL('https://accounts.pinet.com/oauth/authorize');
         authorizeUrl.searchParams.set('response_type', 'token');
         authorizeUrl.searchParams.set('client_id', CLIENT_ID);
@@ -75,7 +89,7 @@
         authorizeUrl.searchParams.set('scope', 'username');
         authorizeUrl.searchParams.set('state', state);
 
-        show('Redirecting to Pi sign-in…');
+        show('Pi SDK unavailable; using the existing sign-in method…');
         window.location.assign(authorizeUrl.toString());
       } catch (err) {
         show(err.message || 'Could not start Pi sign-in.');
