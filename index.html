@@ -12,7 +12,7 @@
   <header class="site-header">
     <a class="brand" href="#" aria-label="MarketHub home"><span class="brand-mark">M</span><span>MarketHub <small>NIGERIA</small></span></a>
     <nav><a href="#marketplace">Shop materials</a><a href="#sell">Sell on MarketHub</a></nav>
-    <button id="loginBtn" class="login-btn">Sign in with Pi</button>
+    <button id="loginBtn" class="login-btn" type="button" onclick="if(window.marketHubPiLogin){window.marketHubPiLogin(event)}else{var s=document.getElementById('status');if(s)s.textContent='MarketHub is still loading. Please reload this page.'}">Sign in with Pi</button>
   </header>
   <main>
     <section class="hero">
@@ -67,6 +67,6 @@
     <section class="trust-strip"><div><b>Made for Nigeria</b><span>Local states and delivery details</span></div><div><b>Seller-first marketplace</b><span>Built for multiple independent shops</span></div><div><b>Pi sign-in</b><span>Your existing sign-in button is preserved</span></div></section>
   </main>
   <footer><span>© MarketHub Nigeria</span><div><a href="privacy.html">Privacy Policy</a><a href="terms.html">Terms</a></div></footer>
-  <script src="app.js?v=991b4c4"></script>
+  <script src="app.js?v=6a6dd47"></script>
 </body>
 </html>
