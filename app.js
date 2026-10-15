@@ -61,10 +61,10 @@
   start().catch(error => { show(error.message || 'Could not connect to Pi sign-in.'); console.error(error); });
 
   const products = [
-    {name:'Dangote Cement',category:'Cement',price: 'Price set by seller in π',unit:'per 50kg bag',seller:'Sample seller · Lagos',kind:'cement',tag:'Popular'},
-    {name:'50kg Cement (bulk order)',category:'Cement',price:'Price set by seller in π',unit:'bulk quantities',seller:'Sample seller · Oyo',kind:'cement',tag:'Bulk'},
+    {name:'Dangote Cement',category:'Cement',price: 'Seller price pending', currency:'NGN',unit:'per 50kg bag',seller:'Sample seller · Lagos',kind:'cement',tag:'Popular'},
+    {name:'50kg Cement (bulk order)',category:'Cement',price:'Seller price pending',currency:'NGN',unit:'bulk quantities',seller:'Sample seller · Oyo',kind:'cement',tag:'Bulk'},
     {name:'Concrete Blocks',category:'Blocks & Bricks',price:'Price set by seller in π',unit:'per 6-inch block',seller:'Sample seller · Ogun',kind:'blocks',tag:''},
-    {name:'High-yield Iron Rods',category:'Iron Rods',price:'Request quote',unit:'multiple sizes',seller:'Sample seller · Abuja',kind:'rods',tag:'Site essential'},
+    {name:'High-yield Iron Rods',category:'Iron Rods',price:'Contact seller for price',currency:'NGN',unit:'multiple sizes',seller:'Sample seller · Abuja',kind:'rods',tag:'Site essential'},
     {name:'Sharp Sand',category:'Sand & Granite',price:'Request quote',unit:'per tipper load',seller:'Sample seller · Rivers',kind:'sand',tag:''},
     {name:'Stone-coated Roofing Sheets',category:'Roofing',price:'Request quote',unit:'per bundle / project',seller:'Sample seller · Anambra',kind:'roof',tag:''},
     {name:'PVC Plumbing Pipes',category:'Plumbing',price:'Request quote',unit:'sizes vary',seller:'Sample seller · Enugu',kind:'pipes',tag:''},
@@ -140,6 +140,38 @@
       if (sellerMessage) sellerMessage.textContent = error.message || 'Could not save registration. Please try again.';
     } finally {
       if (submitButton) { submitButton.disabled = false; submitButton.textContent = 'Submit seller registration'; }
+    }
+  });
+
+  const listingForm = document.getElementById('listingForm');
+  const listingMessage = document.getElementById('listingMessage');
+  if (listingForm) listingForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (listingMessage) listingMessage.textContent = '';
+    const accessToken = localStorage.getItem('pi_access_token');
+    if (!accessToken) {
+      if (listingMessage) listingMessage.textContent = 'Please sign in with Pi first.';
+      return;
+    }
+    const formData = new FormData(listingForm);
+    const listing = Object.fromEntries(formData.entries());
+    listing.price = Number(listing.price);
+    const button = listingForm.querySelector('button[type="submit"]');
+    if (button) { button.disabled = true; button.textContent = 'Saving listing…'; }
+    try {
+      const response = await fetch('/api/listing', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken, listing })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.saved) throw new Error(data.error || 'Could not save listing.');
+      if (listingMessage) listingMessage.textContent = 'Listing saved. Currency: ' + (listing.currency === 'PI' ? 'Pi (π)' : 'NGN (₦)') + '. It may appear after the database is configured for listings.';
+      listingForm.reset();
+    } catch (error) {
+      if (listingMessage) listingMessage.textContent = error.message || 'Could not save listing. Please try again.';
+    } finally {
+      if (button) { button.disabled = false; button.textContent = 'Save listing'; }
     }
   });
 })();
