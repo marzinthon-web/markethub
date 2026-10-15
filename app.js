@@ -6,8 +6,8 @@
   ].filter(Boolean);
 
   const CLIENT_ID = 'qzQ2R9iI56R6R_dj_0C4urjdlqIX2E07_LKlQyIutbA';
-  // Must match the redirect URI registered in the Pi Developer Portal.
-  const REDIRECT_URI = 'https://markethub-pi-login.vercel.app/';
+  // Must exactly match the URI registered in the Pi Developer Portal.
+  const REDIRECT_URI = 'https://markethub-updated-1.vercel.app';
 
   function show(message) {
     if (status) status.textContent = message;
