@@ -1,64 +1,85 @@
 (function () {
   const status = document.getElementById('status');
   const buttons = [document.getElementById('loginBtn'), document.getElementById('loginBtn2')].filter(Boolean);
-  const CLIENT_ID = 'qzQ2R9iI56R6R_dj_0C4urjdlqIX2E07_LKlQyIutbA';
-  // Keep this URI aligned with the Pi Developer Portal configuration.
-  const REDIRECT_URI = 'https://markethub-updated-1.vercel.app/';
 
-  function show(message) { if (status) status.textContent = message; }
+  function show(message) {
+    if (status) status.textContent = message;
+  }
 
-  async function verifyAccessToken(accessToken) {
+  // Pi SDK must be initialized before calling Pi.authenticate().
+  let piSdkReady = false;
+  async function initializePiSdk() {
+    if (!window.Pi) {
+      show('Pi SDK is unavailable. Please open MarketHub in Pi Browser and try again.');
+      return false;
+    }
+    try {
+      await window.Pi.init({ version: '2.0' });
+      piSdkReady = true;
+      const existingToken = localStorage.getItem('pi_access_token');
+      if (existingToken) {
+        try {
+          await verifyAccessToken(existingToken, false);
+        } catch (error) {
+          localStorage.removeItem('pi_access_token');
+          show('Pi sign-in is ready. Tap Sign in with Pi.');
+        }
+      } else {
+        show('Pi sign-in is ready. Tap Sign in with Pi.');
+      }
+      return true;
+    } catch (error) {
+      console.error('Pi SDK initialization failed:', error);
+      show('Could not initialize Pi sign-in. Please reopen MarketHub in Pi Browser.');
+      return false;
+    }
+  }
+
+  async function verifyAccessToken(accessToken, persist = true) {
     const response = await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ accessToken })
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data.verified) throw new Error(data.error || 'Pi sign-in could not be verified.');
-    localStorage.setItem('pi_access_token', accessToken);
+    if (!response.ok || !data.verified) {
+      throw new Error(data.error || 'Pi sign-in could not be verified.');
+    }
+    if (persist) localStorage.setItem('pi_access_token', accessToken);
     show('Signed in as @' + (data.user && data.user.username ? data.user.username : 'Pioneer') + '.');
+    return data.user;
   }
 
-  async function handleOAuthReturn() {
-    const params = new URLSearchParams(window.location.hash.slice(1));
-    const token = params.get('access_token');
-    const returnedState = params.get('state');
-    const error = params.get('error');
-    if (!token && !error) return false;
-    const expectedState = localStorage.getItem('pi_oauth_state');
-    localStorage.removeItem('pi_oauth_state');
-    history.replaceState(null, '', window.location.pathname + window.location.search);
-    if (!expectedState || returnedState !== expectedState) {
-      show('Sign-in could not be verified (state mismatch). Please try again.');
-      return true;
+  async function login() {
+    if (!piSdkReady) {
+      const ready = await initializePiSdk();
+      if (!ready) return;
     }
-    if (error) { show('Pi sign-in was not completed: ' + error + '. Please try again.'); return true; }
-    try { show('Verifying your Pi account…'); await verifyAccessToken(token); }
-    catch (err) { show(err.message || 'Pi sign-in verification failed.'); console.error(err); }
-    return true;
+    buttons.forEach(button => { button.disabled = true; });
+    show('Waiting for Pi sign-in approval…');
+    try {
+      const auth = await window.Pi.authenticate(['username'], function onIncompletePaymentFound(payment) {
+        // MarketHub does not process Pi payments yet. Do not attempt to complete
+        // an incomplete payment automatically; it must be reconciled server-side.
+        console.warn('Pi SDK reported an incomplete payment:', payment && payment.identifier);
+      });
+      if (!auth || !auth.accessToken) {
+        throw new Error('Pi did not return an access token. Please try again.');
+      }
+      await verifyAccessToken(auth.accessToken);
+    } catch (error) {
+      console.error('Pi SDK authentication failed:', error);
+      show(error && error.message ? 'Pi sign-in failed: ' + error.message : 'Pi sign-in failed. Please try again in Pi Browser.');
+    } finally {
+      buttons.forEach(button => { button.disabled = false; });
+    }
   }
 
-  async function start() {
-    if (await handleOAuthReturn()) return;
-    function login() {
-      try {
-        const state = Array.from(window.crypto.getRandomValues(new Uint8Array(24)))
-          .map(value => value.toString(16).padStart(2, '0')).join('');
-        localStorage.setItem('pi_oauth_state', state);
-        const authorizeUrl = new URL('https://accounts.pinet.com/oauth/authorize');
-        authorizeUrl.searchParams.set('response_type', 'token');
-        authorizeUrl.searchParams.set('client_id', CLIENT_ID);
-        authorizeUrl.searchParams.set('redirect_uri', REDIRECT_URI);
-        authorizeUrl.searchParams.set('scope', 'username');
-        authorizeUrl.searchParams.set('state', state);
-        show('Redirecting to Pi sign-in…');
-        window.location.assign(authorizeUrl.toString());
-      } catch (err) { show(err.message || 'Could not start Pi sign-in.'); console.error(err); }
-    }
-    buttons.forEach(button => button.addEventListener('click', login));
-    show('Pi sign-in is ready. Tap Sign in with Pi.');
-  }
-  start().catch(error => { show(error.message || 'Could not connect to Pi sign-in.'); console.error(error); });
+  buttons.forEach(button => button.addEventListener('click', login));
+  initializePiSdk().catch(error => {
+    console.error(error);
+    show('Could not initialize Pi sign-in. Please try again in Pi Browser.');
+  });
 
   const products = [
     {name:'Dangote Cement',category:'Cement',price: 'Seller price pending', currency:'NGN',unit:'per 50kg bag',seller:'Sample seller · Lagos',kind:'cement',tag:'Popular'},
