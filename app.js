@@ -6,36 +6,37 @@
     if (status) status.textContent = message;
   }
 
-  // Pi SDK must be initialized before calling Pi.authenticate().
+  // Keep one shared initialization promise so a fast tap cannot race Pi.init().
   let piSdkReady = false;
-  async function initializePiSdk() {
-    if (!window.Pi) {
-      show('Pi SDK is unavailable. Please open MarketHub in Pi Browser and try again.');
-      return false;
-    }
-    try {
-      await window.Pi.init({ version: '2.0' });
-      piSdkReady = true;
-      const existingToken = localStorage.getItem('pi_access_token');
-      if (existingToken) {
-        try {
-          await verifyAccessToken(existingToken, false);
-        } catch (error) {
-          localStorage.removeItem('pi_access_token');
-          show('Pi sign-in is ready. Tap Sign in with Pi.');
-        }
-      } else {
-        show('Pi sign-in is ready. Tap Sign in with Pi.');
+  let piInitPromise = null;
+  let loginInProgress = false;
+
+  function initializePiSdk() {
+    if (piSdkReady) return Promise.resolve(true);
+    if (piInitPromise) return piInitPromise;
+
+    piInitPromise = (async () => {
+      if (!window.Pi || typeof window.Pi.init !== 'function') {
+        show('Pi SDK has not loaded. Check your connection, then reload MarketHub in Pi Browser.');
+        return false;
       }
-      return true;
-    } catch (error) {
-      console.error('Pi SDK initialization failed:', error);
-      show('Could not initialize Pi sign-in. Please reopen MarketHub in Pi Browser.');
-      return false;
-    }
+      try {
+        await window.Pi.init({ version: '2.0', sandbox: false });
+        piSdkReady = true;
+        show('Pi sign-in is ready. Tap Sign in with Pi.');
+        return true;
+      } catch (error) {
+        console.error('Pi SDK initialization failed:', error);
+        show('Pi SDK could not start: ' + (error && error.message ? error.message : 'please reload MarketHub.'));
+        return false;
+      } finally {
+        piInitPromise = null;
+      }
+    })();
+    return piInitPromise;
   }
 
-  async function verifyAccessToken(accessToken, persist = true) {
+  async function verifyAccessToken(accessToken) {
     const response = await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -43,24 +44,34 @@
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.verified) {
-      throw new Error(data.error || 'Pi sign-in could not be verified.');
+      throw new Error(data.error || 'Pi identity could not be verified by MarketHub.');
     }
-    if (persist) localStorage.setItem('pi_access_token', accessToken);
+    localStorage.setItem('pi_access_token', accessToken);
     show('Signed in as @' + (data.user && data.user.username ? data.user.username : 'Pioneer') + '.');
     return data.user;
   }
 
-  async function login() {
-    if (!piSdkReady) {
+  async function login(event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    if (loginInProgress) return;
+    loginInProgress = true;
+    buttons.forEach(button => {
+      button.disabled = true;
+      button.setAttribute('aria-busy', 'true');
+    });
+    show('Starting Pi sign-in…');
+
+    try {
       const ready = await initializePiSdk();
       if (!ready) return;
-    }
-    buttons.forEach(button => { button.disabled = true; });
-    show('Waiting for Pi sign-in approval…');
-    try {
+      if (typeof window.Pi.authenticate !== 'function') {
+        throw new Error('Pi authenticate is unavailable. Update Pi Browser and reload.');
+      }
+      show('Waiting for Pi sign-in approval…');
       const auth = await window.Pi.authenticate(['username'], function onIncompletePaymentFound(payment) {
-        // MarketHub does not process Pi payments yet. Do not attempt to complete
-        // an incomplete payment automatically; it must be reconciled server-side.
         console.warn('Pi SDK reported an incomplete payment:', payment && payment.identifier);
       });
       if (!auth || !auth.accessToken) {
@@ -69,16 +80,23 @@
       await verifyAccessToken(auth.accessToken);
     } catch (error) {
       console.error('Pi SDK authentication failed:', error);
-      show(error && error.message ? 'Pi sign-in failed: ' + error.message : 'Pi sign-in failed. Please try again in Pi Browser.');
+      show('Pi sign-in failed: ' + (error && error.message ? error.message : 'please try again.'));
     } finally {
-      buttons.forEach(button => { button.disabled = false; });
+      loginInProgress = false;
+      buttons.forEach(button => {
+        button.disabled = false;
+        button.removeAttribute('aria-busy');
+      });
     }
   }
 
-  buttons.forEach(button => button.addEventListener('click', login));
+  buttons.forEach(button => {
+    button.type = 'button';
+    button.addEventListener('click', login);
+  });
   initializePiSdk().catch(error => {
-    console.error(error);
-    show('Could not initialize Pi sign-in. Please try again in Pi Browser.');
+    console.error('Pi SDK startup error:', error);
+    show('Pi sign-in could not start. Reload MarketHub in Pi Browser.');
   });
 
   const products = [
