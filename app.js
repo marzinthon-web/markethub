@@ -73,6 +73,29 @@
     {name:'2-Bedroom Apartment',category:'Apartment',price:'Request quote',unit:'for sale or rent/lease · details to confirm',seller:'Sample listing · Abuja',kind:'property',tag:'Property'},
     {name:'Shop / Commercial Space',category:'Shop / Commercial Space',price:'Request quote',unit:'for sale or rent/lease · details to confirm',seller:'Sample listing · Oyo',kind:'property',tag:'Commercial'}
   ];
+  let databaseProducts = [];
+  async function loadDatabaseListings() {
+    try {
+      const response = await fetch('/api/listings');
+      if (!response.ok) throw new Error('Could not load listings');
+      const data = await response.json();
+      databaseProducts = (Array.isArray(data.listings) ? data.listings : []).map(item => ({
+        id: item.id,
+        name: item.title,
+        category: item.category || (item.listing_type === 'property' ? 'Property' : 'Building materials'),
+        price: Number(item.price ?? item.price_ngn),
+        currency: item.currency || 'NGN',
+        unit: [item.quantity, item.unit].filter(Boolean).join(' · ') || item.transaction_type || '',
+        seller: [item.city, item.state].filter(Boolean).join(', '),
+        description: item.description || '',
+        kind: item.listing_type === 'property' ? 'property' : 'cement',
+        tag: 'Seller listing'
+      }));
+      renderProducts();
+    } catch (error) {
+      console.error('Could not load database listings:', error);
+    }
+  }
   const grid = document.getElementById('productGrid');
   const search = document.getElementById('searchInput');
   const category = document.getElementById('categoryFilter');
@@ -96,9 +119,9 @@
     if (!grid) return;
     const q = (search ? search.value : '').trim().toLowerCase();
     const selected = category ? category.value : 'all';
-    const shown = products.filter(p => (selected === 'all' || p.category === selected) &&
+    const shown = databaseProducts.concat(products).filter(p => (selected === 'all' || p.category === selected) &&
       (p.name + ' ' + p.category + ' ' + p.seller).toLowerCase().includes(q));
-    grid.innerHTML = shown.map(p => `<article class="product-card"><div class="product-art art-${p.kind}">${productArt(p.kind)}${p.tag ? '<span class="product-tag">'+p.tag+'</span>' : ''}</div><div class="product-info"><span class="product-category">${p.category}</span><h3>${p.name}</h3><div class="product-price">${typeof p.price === "number" ? ((p.currency === "PI" ? "π " : "₦") + p.price.toLocaleString(undefined, { maximumFractionDigits: 2 })) : p.price}</div><p class="product-unit">${p.unit}</p><div class="product-seller">⌖ ${p.seller}</div><button class="enquire-btn" type="button" data-product="${p.name}">Enquire about product</button></div></article>`).join('');
+    grid.innerHTML = shown.map(p => `<article class="product-card"><div class="product-art art-${p.kind}">${productArt(p.kind)}${p.tag ? '<span class="product-tag">'+p.tag+'</span>' : ''}</div><div class="product-info"><span class="product-category">${p.category}</span><h3>${p.name}</h3><div class="product-price">${typeof p.price === "number" ? ((p.currency === "PI" ? "π " : "₦") + p.price.toLocaleString(undefined, { maximumFractionDigits: 2 })) : p.price}</div><p class="product-unit">${p.unit}</p><div class="product-seller">⌖ ${p.seller}</div><button class="enquire-btn" type="button" data-product="${p.name}" ${p.id ? 'data-listing-id="'+p.id+'"' : ''}>Enquire about product</button></div></article>`).join('');
     if (empty) empty.hidden = shown.length > 0;
   }
   if (search) search.addEventListener('input', renderProducts);
@@ -111,6 +134,7 @@
       alert('Enquiry flow for "' + name + '" is a preview only. Seller contact and order handling need a connected marketplace backend.');
     });
     renderProducts();
+    loadDatabaseListings();
   }
 
   const sellerForm = document.getElementById('sellerForm');
@@ -166,7 +190,7 @@
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.saved) throw new Error(data.error || 'Could not save listing.');
-      if (listingMessage) listingMessage.textContent = 'Listing saved. Currency: ' + (listing.currency === 'PI' ? 'Pi (π)' : 'NGN (₦)') + '. It may appear after the database is configured for listings.';
+      if (listingMessage) listingMessage.textContent = 'Listing saved. Currency: ' + (listing.currency === 'PI' ? 'Pi (π)' : 'NGN (₦)') + '. It is saved. Refresh the marketplace to check your published listing.';
       listingForm.reset();
     } catch (error) {
       if (listingMessage) listingMessage.textContent = error.message || 'Could not save listing. Please try again.';
