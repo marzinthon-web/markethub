@@ -61,9 +61,9 @@
   start().catch(error => { show(error.message || 'Could not connect to Pi sign-in.'); console.error(error); });
 
   const products = [
-    {name:'Dangote Cement',category:'Cement',price: '₦8,500',unit:'per 50kg bag',seller:'Sample seller · Lagos',kind:'cement',tag:'Popular'},
-    {name:'50kg Cement (bulk order)',category:'Cement',price:'Request quote',unit:'bulk quantities',seller:'Sample seller · Oyo',kind:'cement',tag:'Bulk'},
-    {name:'Concrete Blocks',category:'Blocks & Bricks',price:'₦650',unit:'per 6-inch block',seller:'Sample seller · Ogun',kind:'blocks',tag:''},
+    {name:'Dangote Cement',category:'Cement',price: 'Price set by seller in π',unit:'per 50kg bag',seller:'Sample seller · Lagos',kind:'cement',tag:'Popular'},
+    {name:'50kg Cement (bulk order)',category:'Cement',price:'Price set by seller in π',unit:'bulk quantities',seller:'Sample seller · Oyo',kind:'cement',tag:'Bulk'},
+    {name:'Concrete Blocks',category:'Blocks & Bricks',price:'Price set by seller in π',unit:'per 6-inch block',seller:'Sample seller · Ogun',kind:'blocks',tag:''},
     {name:'High-yield Iron Rods',category:'Iron Rods',price:'Request quote',unit:'multiple sizes',seller:'Sample seller · Abuja',kind:'rods',tag:'Site essential'},
     {name:'Sharp Sand',category:'Sand & Granite',price:'Request quote',unit:'per tipper load',seller:'Sample seller · Rivers',kind:'sand',tag:''},
     {name:'Stone-coated Roofing Sheets',category:'Roofing',price:'Request quote',unit:'per bundle / project',seller:'Sample seller · Anambra',kind:'roof',tag:''},
