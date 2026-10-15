@@ -98,7 +98,7 @@
     const selected = category ? category.value : 'all';
     const shown = products.filter(p => (selected === 'all' || p.category === selected) &&
       (p.name + ' ' + p.category + ' ' + p.seller).toLowerCase().includes(q));
-    grid.innerHTML = shown.map(p => `<article class="product-card"><div class="product-art art-${p.kind}">${productArt(p.kind)}${p.tag ? '<span class="product-tag">'+p.tag+'</span>' : ''}</div><div class="product-info"><span class="product-category">${p.category}</span><h3>${p.name}</h3><div class="product-price">${p.price}</div><p class="product-unit">${p.unit}</p><div class="product-seller">⌖ ${p.seller}</div><button class="enquire-btn" type="button" data-product="${p.name}">Enquire about product</button></div></article>`).join('');
+    grid.innerHTML = shown.map(p => `<article class="product-card"><div class="product-art art-${p.kind}">${productArt(p.kind)}${p.tag ? '<span class="product-tag">'+p.tag+'</span>' : ''}</div><div class="product-info"><span class="product-category">${p.category}</span><h3>${p.name}</h3><div class="product-price">${typeof p.price === "number" ? ((p.currency === "PI" ? "π " : "₦") + p.price.toLocaleString(undefined, { maximumFractionDigits: 2 })) : p.price}</div><p class="product-unit">${p.unit}</p><div class="product-seller">⌖ ${p.seller}</div><button class="enquire-btn" type="button" data-product="${p.name}">Enquire about product</button></div></article>`).join('');
     if (empty) empty.hidden = shown.length > 0;
   }
   if (search) search.addEventListener('input', renderProducts);
